@@ -1,17 +1,23 @@
 from flask import Flask, render_template
 from flask import request
 from flask_bootstrap import Bootstrap
-
+from flask_moment import Moment
+from datetime import datetime
+from hello import NameForm
 
 app = Flask(__name__)
+app.config['SECRET_KEY'] = 'flasky-secret'
 
 bootstrap = Bootstrap(app)
+moment =  Moment(app)
 
 
 @app.route('/')
 def index():
     #print(request)
-    return request.headers.get('User-Agent')
+    form = NameForm()
+    
+    return render_template('index.html',form = form,agent = request.headers.get('User-Agent'), current_time = datetime.utcnow())
 
 
 @app.route('/<name>/<id>')
