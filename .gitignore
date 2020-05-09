@@ -1,1 +1,4 @@
 __pycache__
+.idea
+data.sqlite
+app/__pychache__
