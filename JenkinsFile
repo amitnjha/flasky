@@ -13,13 +13,8 @@ pipeline {
             }
         }
         stage('test') {
-	  agent {
-                docker {
-                    image 'qnib/pytest'
-                }
-            }
-            steps {
-	      withEnv(["FLASK_CONFIG=testing","FLASK_APP=flasky","PATH=$PATH:$env.WORKSPACE/.local/bin"]){											    sh 'pytest --junit-xml test-reports/results.xml'
+	    steps {
+	      withEnv(["FLASK_CONFIG=testing","FLASK_APP=flasky","PATH=${PATH}:${env.WORKSPACE}/.local/bin"]){											    sh 'pytest --junit-xml test-reports/results.xml'
 	      }
             }
             post {
