@@ -7,3 +7,5 @@ Flask-Migrate==2.5.3
 Flask-Moment==0.9.0
 Flask-SQLAlchemy==2.4.1
 Flask-WTF==0.14.3
+pytest==5.3.5
+testpath==0.4.2
