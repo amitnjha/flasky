@@ -14,9 +14,9 @@ pipeline {
         }
         stage('test') {
 	    steps {
-	      withEnv(["FLASK_CONFIG=testing","FLASK_APP=flasky","PATH=${PATH}:${env.WORKSPACE}/.local/bin"]){
+	      withEnv(["FLASK_CONFIG=testing","FLASK_APP=flasky"]){
 		sh 'export PATH=$PATH:/var/lib/jenkins/workspace/flasky/.local/bin/'
-		sh 'echo $FLASK_CONFIG'
+		sh 'echo $FLASK_APP'
 		sh '/var/lib/jenkins/workspace/flasky/.local/bin/flask test'
 	      }
             }
