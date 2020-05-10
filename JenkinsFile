@@ -34,7 +34,11 @@ pipeline {
 	      }
             }
         }
-	
+	stage('deploy') {
+	     steps {
+	       sh './deployment/deploy_prod.sh'
+	     }
+        }
     }
     post {
 	     success {
