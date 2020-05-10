@@ -14,7 +14,7 @@ pipeline {
         }
         stage('test1') {
             steps {
-	      withEnv(["FLASK_CONFIG=testing","FLASK_APP=flasky"]){											   	  
+	      withEnv(["FLASK_CONFIG=testing","FLASK_APP=flasky","PATH=$PATH:$env.WORKSPACE/.local/bin"]){											    echo $PATH	  
 	    	  sh 'python -m flask test'
 	      }
             }
