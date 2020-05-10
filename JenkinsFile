@@ -20,9 +20,6 @@ pipeline {
 		sh '/var/lib/jenkins/workspace/flasky/.local/bin/pytest'
 	      }
             }
-            post {
-                always {junit 'test-reports/*.xml'}
-            }
         }
 	
     }
