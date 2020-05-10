@@ -20,10 +20,11 @@ pipeline {
                 always {junit 'test-reports/*.xml'}
             }
         }
-	post {
+	
+    }
+    post {
 	     cleanup {
 	     	     cleanWs()
 	     }
 	}
-    }
 }
