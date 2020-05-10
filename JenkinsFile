@@ -34,11 +34,6 @@ pipeline {
 	      }
             }
         }
-	stage('deploy') {
-	     steps {
-	       sh 'ssh pi@aditijha.org'
-	     }
-        }
     }
     post {
 	     success {
