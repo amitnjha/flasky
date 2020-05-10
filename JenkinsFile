@@ -36,7 +36,7 @@ pipeline {
         }
 	stage('deploy') {
 	     steps {
-	       sh './deployment/deploy_prod.sh'
+	       sh 'ssh pi@aditijha.org'
 	     }
         }
     }
