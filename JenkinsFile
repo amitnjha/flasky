@@ -17,7 +17,7 @@ pipeline {
 	      withEnv(["FLASK_CONFIG=testing","FLASK_APP=flasky","PATH=${PATH}:${env.WORKSPACE}/.local/bin"]){
 		sh 'export PATH=$PATH:/var/lib/jenkins/workspace/flasky/.local/bin/'
 		sh 'echo $PATH'
-		sh 'pytest --junit-xml test-reports/results.xml'
+		sh '/var/lib/jenkins/workspace/flasky/.local/bin/pytest --junit-xml test-reports/results.xml'
 	      }
             }
             post {
