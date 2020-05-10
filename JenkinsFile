@@ -1,9 +1,15 @@
 pipeline {
-    agent { docker { image 'python:3.7.2' } }
+    agent {
+       docker{
+	    image 'python:3.7.2'
+       }
+    }
     stages {
         stage('build') {
             steps {
-                sh 'pip --no-cache-dir install -r requirements.txt --user'
+               withEnv(["HOME=${env.WORKSPACE}"]){
+	           sh 'pip --no-cache-dir install -r requirements.txt --user'
+	       }
             }
         }
         stage('test1') {
@@ -14,5 +20,10 @@ pipeline {
                 always {junit 'test-reports/*.xml'}
             }
         }
+	post {
+	     cleanup {
+	     	     cleanWs()
+	     }
+	}
     }
 }
