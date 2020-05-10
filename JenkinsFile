@@ -17,7 +17,7 @@ pipeline {
 	      withEnv(["FLASK_CONFIG=testing","FLASK_APP=flasky"]){
 		sh 'export PATH=$PATH:/var/lib/jenkins/workspace/flasky/.local/bin/'
 		sh 'echo $FLASK_APP'
-		sh '/var/lib/jenkins/workspace/flasky/.local/bin/flask test'
+		sh '/var/lib/jenkins/workspace/flasky/.local/bin/pytest'
 	      }
             }
             post {
