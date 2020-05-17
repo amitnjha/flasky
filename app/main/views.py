@@ -7,6 +7,11 @@ from .forms import NameForm
 from .. import db
 from ..models import User
 from ..email import send_email
+import os
+import json
+import random
+from flask import Response
+size_list = [0.5, 1, 2]
 
 @main.route('/', methods=['GET', 'POST'])
 def index():
@@ -33,5 +38,14 @@ def index():
 def secret():
     return 'Only Authenticated Users are allowed'
 
+@main.route('/images', methods=['GET', 'POST'])
+def images():
+    imgList = []
+    imgs = os.listdir('/var/www/html/images')
+    for img in imgs:
+        size = random.randint(1,4)
+        imgList.append({"src":"https://aditijha.org/images/"+img, "width": size, "height":size, "dummy": "dummy"})
+    #print(imgList)
+    return Response(json.dumps(imgList), mimetype='text/json')
 
  
