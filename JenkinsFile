@@ -1,4 +1,16 @@
-pipeline {
+
+void setBuildStatus(String message, String state) {
+  step([
+      $class: "GitHubCommitStatusSetter",
+      reposSource: [$class: "ManuallyEnteredRepositorySource", url: "https://github.com/amitnjha/flasky"],
+      contextSource: [$class: "ManuallyEnteredCommitContextSource", context: "ci/jenkins/build-status"],
+      errorHandlers: [[$class: "ChangingBuildStatusErrorHandler", result: "UNSTABLE"]],
+      statusResultSource: [ $class: "ConditionalStatusResultSource", results: [[$class: "AnyBuildResult", message: message, state: state]] ]
+  ]);
+}
+
+pipeline { 
+    	
     agent {
        docker{
 	    image 'python:3.7.2'
@@ -7,26 +19,29 @@ pipeline {
     stages {
         stage('build') {
             steps {
-               withEnv(["HOME=${env.WORKSPACE}"]){
+	    setBuildStatus("Build Running", "PENDING");
+	    withEnv(["HOME=${env.WORKSPACE}"]){
 	           sh 'pip install -r requirements.txt --user'
 	       }
             }
         }
         stage('test') {
 	    steps {
-	      withEnv(["FLASK_CONFIG=testing","FLASK_APP=flasky","PATH=${PATH}:${env.WORKSPACE}/.local/bin"]){
+	      withEnv(["FLASK_CONFIG=testing","FLASK_APP=flasky"]){
 		sh 'export PATH=$PATH:/var/lib/jenkins/workspace/flasky/.local/bin/'
-		sh 'echo $PATH'
-		sh '/var/lib/jenkins/workspace/flasky/.local/bin/flask test'
+		sh 'echo $FLASK_APP'
+		sh '/var/lib/jenkins/workspace/flasky/.local/bin/pytest'
 	      }
             }
-            post {
-                always {junit 'test-reports/*.xml'}
-            }
         }
-	
     }
     post {
+	     success {
+     	        setBuildStatus("Build succeeded", "SUCCESS");
+    	     }
+             failure {
+                setBuildStatus("Build failed", "FAILURE");
+             }	
 	     cleanup {
 	     	     cleanWs()
 	     }
