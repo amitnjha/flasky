@@ -5,12 +5,14 @@ from flask_login import login_required
 from . import main
 from .forms import NameForm
 from .. import db
-from ..models import User
+from ..models import User, Permission
 from ..email import send_email
 import os
 import json
 import random
 from flask import Response
+from ..decorators import admin_required, permission_required
+
 size_list = [0.5, 1, 2]
 
 @main.route('/', methods=['GET', 'POST'])
@@ -48,4 +50,16 @@ def images():
     #print(imgList)
     return Response(json.dumps(imgList), mimetype='text/json')
 
- 
+@main.route('/admin')
+@login_required
+@admin_required
+def for_admin_only():
+    return 'For Administrators'
+
+
+@main.route('/moderate')
+@login_required
+@permission_required(Permission.MODERATE)
+def for_moderator_only():
+    return 'For comment moderators'
+
