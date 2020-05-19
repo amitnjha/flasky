@@ -58,3 +58,16 @@ def confirm(token):
     else:
         flash('Confirmation link is invalid or has expired')
     return redirect(url_for('main.index'))
+
+@auth.route('unconfirmed')
+def unconfirmed():
+    return ('Your account is not confirmed. Please check you email for link')
+    #return redirect(url_for('main.index'))
+
+@auth.before_app_request
+def before_request():
+    if current_user.is_authenticated:
+        current_user.ping()
+        #if not current_user.confirmed and request.endpoint and request.blueprint != 'auth' and request.endpoint != 'static':
+        #    return redirect(url_for('auth.unconfirmed'))
+
