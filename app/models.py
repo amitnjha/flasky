@@ -64,8 +64,14 @@ class Role(db.Model):
             role.default = (role.name == default_role)
             db.session.add(role)
         db.session.commit()
-    
 
+class Post(db.Model):
+    __tablename__ = 'posts'
+    id = db.Column(db.Integer, primary_key = True)
+    body = db.Column(db.Text)
+    timestamp = db.Column(db.DateTime, index = True, default = datetime.datetime.utcnow)
+    author_id = db.Column(db.Integer, db.ForeignKey('users.id'))
+    
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id))
@@ -82,7 +88,7 @@ class User(UserMixin, db.Model):
     about_me = db.Column(db.Text())
     member_since = db.Column(db.DateTime(), default = datetime.datetime.utcnow)
     last_seen = db.Column(db.DateTime(), default = datetime.datetime.utcnow)
-    
+    posts = db.relationship('Post', backref = 'auther', lazy = 'dynamic')
     
     def __init__(self, **kwargs):
         super(User,self).__init__(**kwargs)

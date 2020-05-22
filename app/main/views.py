@@ -3,9 +3,9 @@ from datetime import datetime
 from flask import render_template, session,redirect, url_for, request, flash
 from flask_login import login_required
 from . import main
-from .forms import NameForm, EditProfileForm, EditProfileAdminForm
+from .forms import NameForm, EditProfileForm, EditProfileAdminForm, PostForm
 from .. import db
-from ..models import User, Permission, Role
+from ..models import User, Permission, Role,Post
 from ..email import send_email
 import os
 import json
@@ -19,23 +19,34 @@ size_list = [0.5, 1, 2]
 
 @main.route('/', methods=['GET', 'POST'])
 def index():
-    form = NameForm()
-    if form.validate_on_submit():
-        user =  User.query.filter_by(username = form.name.data).first()
-        if user is None:
-            user = User(username = form.name.data, password = form.password.data)
-            db.session.add(user)
-            db.session.commit()
-            print('sending email')
-            send_email('amitnjha@gmail.com', user.username,'frozen')
-            print('sent!')
-            session['known'] = False
-        else:
-            session['known'] = True
-        session['name'] = form.name.data
-        form.name.data = ''
+    #form = NameForm()
+    #if form.validate_on_submit():
+    #    user =  User.query.filter_by(username = form.name.data).first()
+    #    if user is None:
+    #        user = User(username = form.name.data, password = form.password.data)
+    #        db.session.add(user)
+    #        db.session.commit()
+    #        print('sending email')
+    #        send_email('amitnjha@gmail.com', user.username,'frozen')
+    #        print('sent!')
+    #        session['known'] = False
+    #    else:
+    #        session['known'] = True
+    #    session['name'] = form.name.data
+    #    form.name.data = ''
+    #    return redirect(url_for('.index'))
+    #return render_template('index.html',form = form,name = session.get('name'),known = session.get('known'),agent = request.headers.get('User-Agent'), current_time = datetime.utcnow())
+    form = PostForm()
+    if current_user.can(Permission.WRITE) and form.validate_on_submit():
+        post = Post()
+        post.body = form.body.data
+        post.author_id=current_user._get_current_object().id
+        db.session.add(post)
+        db.session.commit()
         return redirect(url_for('.index'))
-    return render_template('index.html',form = form,name = session.get('name'),known = session.get('known'),agent = request.headers.get('User-Agent'), current_time = datetime.utcnow())
+    posts = Post.query.order_by(Post.timestamp.desc()).all()
+    return render_template('index.html', form = form, posts = posts)
+
 
 @main.route('/secret')
 @login_required
