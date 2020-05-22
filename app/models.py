@@ -5,6 +5,9 @@ from . import login_manager
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
 from flask import current_app
 from flask_login import AnonymousUserMixin
+import datetime
+from flask import request
+import hashlib
 
 class Permission:
     FOLLOW = 1
@@ -74,6 +77,12 @@ class User(UserMixin, db.Model):
     password = db.Column(db.String(64))
     password_hash = db.Column(db.String(128))
     confirmed = db.Column(db.Boolean, default = False)
+    name = db.Column(db.String(64))
+    location = db.Column(db.String(64))
+    about_me = db.Column(db.Text())
+    member_since = db.Column(db.DateTime(), default = datetime.datetime.utcnow)
+    last_seen = db.Column(db.DateTime(), default = datetime.datetime.utcnow)
+    
     
     def __init__(self, **kwargs):
         super(User,self).__init__(**kwargs)
@@ -82,7 +91,12 @@ class User(UserMixin, db.Model):
                 self.role = Role.query.filter_by(name='Administrator').first()
             if self.role is None:
                 self.role = Role.query.filter_by(default=True).first()
-    
+
+    def ping(self):
+        self.last_seen = datetime.datetime.now()
+        db.session.add(self)
+        db.session.commit()
+        
     def can(self, perm):
         return self.role is not None and self.role.has_permission(perm)
 
@@ -121,6 +135,11 @@ class User(UserMixin, db.Model):
         db.session.add(self)
         return True
 
+    def gravatar(self, size=100, default = 'identicon', rating = 'g'):
+        url = 'https://secure.gravatar.com/avatar'
+        hash = hashlib.md5(self.email.lower().encode('utf-8')).hexdigest()
+        return '{url}/{hash}?s={size}&d={default}&r={rating}'.format(url = url, hash = hash, size = size, default = default, rating = rating)
+    
 class AnonymousUser(AnonymousUserMixin):
     def can(self, permissions):
         return False
