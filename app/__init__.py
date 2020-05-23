@@ -6,12 +6,14 @@ from flask_sqlalchemy import SQLAlchemy
 from config import config
 from flask_login import LoginManager
 from flask_cors import CORS
+from flask_pagedown import PageDown
 
 bootstrap = Bootstrap()
 mail = Mail()
 moment = Moment()
 db = SQLAlchemy()
 cors=CORS()
+pagedown=PageDown()
 login_manager = LoginManager()
 login_manager.login_view = 'auth.login'
 
@@ -26,7 +28,7 @@ def create_app(config_name):
     moment.init_app(app)
     db.init_app(app)
     cors.init_app(app)
-    
+    pagedown.init_app(app)
     login_manager.init_app(app)
     
     from .main import main as main_blueprint

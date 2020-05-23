@@ -1,8 +1,14 @@
 {% extends 'base.html' %}
 {% import "bootstrap/wtf.html" as wtf  %}
+{% import "_macros.html" as macros %}
 
 {% block title %}
  Flasky
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+{{ pagedown.include_pagedown() }}
 {% endblock %}
 
 {% block page_content %}
@@ -21,17 +27,10 @@
   {{ wtf.quick_form(form) }}
   {% endif %}
 </div>
-<ul class="posts">
-  {% for post in posts %}
-  <li class="post">
-    <div class="profile-thumbnail">
-      <a href="{{ url_for('.user', username=post.author.username) }}">
-	<img class="img-roundeed profile-thumbnail"
-	     src= "{{ post.author.gravatar(size=40) }}" />
-      </a>
-    </div>
-    <div class="post-body">{{post.body}}</div>
-  </li>
-  {% endfor %}
-</ul>
+{% include '_posts.html' %}
+<div class="pagination">
+  {{ macros.pagination_widget(pagination, '.index') }}
+</div>
+
+
 {% endblock %} 
