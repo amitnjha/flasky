@@ -1,11 +1,11 @@
 from datetime import datetime
 
-from flask import render_template, session,redirect, url_for, request, flash
+from flask import render_template, session,redirect, url_for, request, flash, current_app
 from flask_login import login_required
 from . import main
-from .forms import NameForm, EditProfileForm, EditProfileAdminForm
+from .forms import NameForm, EditProfileForm, EditProfileAdminForm, PostForm
 from .. import db
-from ..models import User, Permission, Role
+from ..models import User, Permission, Role,Post
 from ..email import send_email
 import os
 import json
@@ -19,23 +19,38 @@ size_list = [0.5, 1, 2]
 
 @main.route('/', methods=['GET', 'POST'])
 def index():
-    form = NameForm()
-    if form.validate_on_submit():
-        user =  User.query.filter_by(username = form.name.data).first()
-        if user is None:
-            user = User(username = form.name.data, password = form.password.data)
-            db.session.add(user)
-            db.session.commit()
-            print('sending email')
-            send_email('amitnjha@gmail.com', user.username,'frozen')
-            print('sent!')
-            session['known'] = False
-        else:
-            session['known'] = True
-        session['name'] = form.name.data
-        form.name.data = ''
+    #form = NameForm()
+    #if form.validate_on_submit():
+    #    user =  User.query.filter_by(username = form.name.data).first()
+    #    if user is None:
+    #        user = User(username = form.name.data, password = form.password.data)
+    #        db.session.add(user)
+    #        db.session.commit()
+    #        print('sending email')
+    #        send_email('amitnjha@gmail.com', user.username,'frozen')
+    #        print('sent!')
+    #        session['known'] = False
+    #    else:
+    #        session['known'] = True
+    #    session['name'] = form.name.data
+    #    form.name.data = ''
+    #    return redirect(url_for('.index'))
+    #return render_template('index.html',form = form,name = session.get('name'),known = session.get('known'),agent = request.headers.get('User-Agent'), current_time = datetime.utcnow())
+    form = PostForm()
+    if current_user.can(Permission.WRITE) and form.validate_on_submit():
+        post = Post()
+        post.body = form.body.data
+        post.author_id=current_user._get_current_object().id
+        db.session.add(post)
+        db.session.commit()
         return redirect(url_for('.index'))
-    return render_template('index.html',form = form,name = session.get('name'),known = session.get('known'),agent = request.headers.get('User-Agent'), current_time = datetime.utcnow())
+    page = request.args.get('page',1, type=int)
+    pagination = Post.query.order_by(Post.timestamp.desc()).paginate(page, per_page=current_app.config['FLASKY_POSTS_PER_PAGE'],error_out=False)
+    posts = pagination.items
+    
+    #posts = Post.query.order_by(Post.timestamp.desc()).all()
+    return render_template('index.html', form = form, posts = posts, pagination =  pagination)
+
 
 @main.route('/secret')
 @login_required
@@ -65,11 +80,11 @@ def for_admin_only():
 def for_moderator_only():
     return 'For comment moderators'
 
-
 @main.route('/user/<username>')
 def user(username):
     user = User.query.filter_by(username = username).first_or_404()
-    return render_template('user.html', user = user)
+    posts = user.posts.order_by(Post.timestamp.desc()).all()
+    return render_template('user.html', user = user, posts = posts)
 
 @main.route('/edit-profile', methods = ['GET', 'POST'])
 @login_required
@@ -114,3 +129,24 @@ def edit_profile_admin(id):
     form.location.data = user.location
     form.about_me.data = user.about_me
     return render_template('edit_profile.html', form = form, user = user)
+
+@main.route('/post/<int:id>')
+def post(id):
+    post =  Post.query.get_or_404(id)
+    return render_template('post.html', posts=[post])
+
+@main.route('/edit/<int:id>', methods = ['GET', 'POST'])
+@login_required
+def edit(id):
+    post = Post.query.get_or_404(id)
+    if current_user != post.author and not current_user.can(Permission.ADMIN):
+        abort(403)
+    form = PostForm()
+    if form.validate_on_submit():
+        post.body = form.body.data
+        db.session.add(post)
+        db.session.commit()
+        flash('The post has been updated')
+        return redirect(url_for('.post', id =post.id))
+    form.body.data = post.body
+    return render_template('edit_post.html', form = form)
