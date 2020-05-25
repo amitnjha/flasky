@@ -18,8 +18,8 @@ class SeleniumTestCase(unittest.TestCase):
 
         try:
             cls.client = webdriver.Chrome()
-        except Error as e:
-            print(e)
+        except:
+            pass
 
         #skip thse tess if the browser could not be started
         if cls.client:
