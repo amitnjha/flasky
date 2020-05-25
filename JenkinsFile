@@ -22,7 +22,6 @@ pipeline {
 	    setBuildStatus("Build Running", "PENDING");
 	    withEnv(["HOME=${env.WORKSPACE}"]){
 	           sh 'pip install -r requirements.txt --user'
-		   sh 'apt-get install chromedriver'
 	       }
             }
         }
