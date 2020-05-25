@@ -50,5 +50,5 @@ class APITestCase(unittest.TestCase):
 
         self.assertEqual(response.status_code, 200)
         json_response = json.loads(response.get_data(as_text = True))
-        self.assertEqual('http://localhost' + json_response['url'], url)
+        self.assertEqual('http://localhost:5000' + json_response['url'], url)
         self.assertEqual(json_response['body'] , 'blog body')

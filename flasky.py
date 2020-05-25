@@ -46,9 +46,10 @@ def test(coverage):
         print('HTML Version: file://%s/index.html' % covdir)
         COV.erase()
 
-
+"""
 @manager.command
 def deploy():
     upgrade()
     Role.insert_roles()
     User.add_self_follows()
+"""
