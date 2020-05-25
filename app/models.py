@@ -67,6 +67,15 @@ class Role(db.Model):
             db.session.add(role)
         db.session.commit()
 
+
+
+class Follow(db.Model):
+    __tablename__ = 'follows'
+    follower_id = db.Column(db.Integer, db.ForeignKey('users.id'), primary_key= True)
+    followed_id = db.Column(db.Integer, db.ForeignKey('users.id'), primary_key= True)
+    timestamp = db.Column(db.DateTime, default = datetime.datetime.utcnow)
+
+    
 class Post(db.Model):
     __tablename__ = 'posts'
     id = db.Column(db.Integer, primary_key = True)
@@ -100,7 +109,8 @@ class User(UserMixin, db.Model):
     member_since = db.Column(db.DateTime(), default = datetime.datetime.utcnow)
     last_seen = db.Column(db.DateTime(), default = datetime.datetime.utcnow)
     posts = db.relationship('Post', backref = 'author', lazy = 'dynamic')
-    
+    followed = db.relationship('Follow', foreign_keys = [Follow.follower_id], backref = db.backref('follower', lazy = 'joined'), lazy = 'dynamic', cascade = 'all, delete-orphan')
+    followers = db.relationship('Follow', foreign_keys = [Follow.followed_id], backref = db.backref('followed', lazy = 'joined'), lazy = 'dynamic', cascade = 'all, delete-orphan')
     def __init__(self, **kwargs):
         super(User,self).__init__(**kwargs)
         if self.role is None:
@@ -151,11 +161,46 @@ class User(UserMixin, db.Model):
         self.confirmed = True
         db.session.add(self)
         return True
-
+    @property
+    def followed_posts(self):
+        return Post.query.join(Follow, Follow.followed_id == Post.author_id).filter(Follow.follower_id == self.id)
+    
+    
     def gravatar(self, size=100, default = 'identicon', rating = 'g'):
         url = 'https://secure.gravatar.com/avatar'
         hash = hashlib.md5(self.email.lower().encode('utf-8')).hexdigest()
         return '{url}/{hash}?s={size}&d={default}&r={rating}'.format(url = url, hash = hash, size = size, default = default, rating = rating)
+
+    def follow(self, user):
+        if not self.is_following(user):
+            #print(self, user)
+            f = Follow(follower = self, followed = user)
+            db.session.add(f)
+
+    def unfollow(self, user):
+        f = self.followed.filter_by(followed_id = user.id).first()
+        if f:
+            db.session.delete(f)
+
+    def is_following(self, user):
+        if user.id is None:
+            return False
+        #print(self.followed.filter_by(followed_id = user.id))
+        return self.followed.filter_by(followed_id = user.id).first() is not None
+
+    def is_followed_by(self, user):
+        if user.id is None:
+            return False
+        return self.followers.filter_by(follower_id = user.id).first() is not None
+    
+    @staticmethod
+    def add_self_follows():
+        for user in User.query.all():
+            if not user.is_following(user):
+                user.follow(user)
+                db.session.add(user)
+                db.session.commit()
+
     
 class AnonymousUser(AnonymousUserMixin):
     def can(self, permissions):
